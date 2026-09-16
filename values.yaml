@@ -1,0 +1,39 @@
+# Per-environment configuration. Override with -f values-prod.yaml or --set.
+
+nameOverride: ""
+
+mosquitto:
+  image: eclipse-mosquitto:2.0
+  port: 1883
+  # Anonymous access is fine for a local k3s demo. For anything reachable,
+  # mount a password file and set this to false.
+  allowAnonymous: true
+  persistence:
+    enabled: true
+    size: 1Gi
+
+prometheus:
+  image: prom/prometheus:v2.54.1
+  port: 9090
+  scrapeInterval: 15s
+  retention: 7d
+  persistence:
+    enabled: true
+    size: 5Gi
+  # Additional scrape targets, e.g. the MQTT-to-Prometheus exporter.
+  extraTargets: []
+
+grafana:
+  image: grafana/grafana:11.2.0
+  port: 3000
+  adminUser: admin
+  # Demo credential. Supply a real one via --set or an existing Secret.
+  adminPassword: changeme
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
