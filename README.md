@@ -1,5 +1,7 @@
 # telemetry-stack
 
+[![CI](https://github.com/IliasSoultana/telemetry-stack/actions/workflows/ci.yml/badge.svg)](https://github.com/IliasSoultana/telemetry-stack/actions/workflows/ci.yml)
+
 Helm chart deploying the MQTT / Prometheus / Grafana telemetry stack to
 Kubernetes.
 
@@ -79,3 +81,13 @@ file and set it to `false`.
 The Grafana admin password is stored in a Secret rendered from values. For real
 deployments, reference an existing Secret instead of passing the password
 through Helm.
+
+## Validation
+
+CI lints the chart, renders it with both default and overridden values, and
+validates every rendered object against the upstream Kubernetes schemas with
+[`kubeconform`](https://github.com/yannh/kubeconform) in strict mode.
+
+Rendering matters more than linting here: `helm lint` passes on templates that
+only produce invalid YAML once values are substituted, and strict validation
+catches a misspelled field at build time rather than on `kubectl apply`.

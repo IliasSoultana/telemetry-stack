@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  chart:
+    name: Lint and validate the chart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: azure/setup-helm@v4
+
+      - name: Install kubeconform
+        run: |
+          curl -sSLo kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar xf kubeconform.tar.gz kubeconform
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: helm lint
+        run: helm lint .
+
+      # Rendering is the part that catches template errors; linting alone
+      # passes on templates that produce invalid YAML once values are applied.
+      - name: Render manifests
+        run: |
+          helm template telem . > rendered.yaml
+          wc -l rendered.yaml
+
+      # kubeconform checks the rendered objects against the upstream Kubernetes
+      # JSON schemas, so a misspelled field fails here rather than on apply.
+      - name: kubeconform
+        run: |
+          kubeconform -strict -summary \
+            -schema-location default \
+            rendered.yaml
+
+      # The chart is meant to be configurable; rendering only the defaults
+      # would never exercise the override paths documented in the README.
+      - name: Render with overrides
+        run: |
+          helm template telem . \
+            --set grafana.adminPassword=ci-test \
+            --set prometheus.retention=30d \
+            --set mosquitto.persistence.size=5Gi \
+            > rendered-overrides.yaml
+          kubeconform -strict -summary -schema-location default rendered-overrides.yaml
