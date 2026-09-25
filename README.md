@@ -6,7 +6,7 @@ Helm chart deploying the MQTT / Prometheus / Grafana telemetry stack to
 Kubernetes.
 
 Written from scratch as an independent project. It composes three upstream
-public images -- eclipse-mosquitto, prom/prometheus and grafana/grafana -- with
+public images, eclipse-mosquitto, prom/prometheus and grafana/grafana, with
 Helm templates and configuration written for this repository. It contains no
 third-party or employer-owned code, configuration or data.
 
